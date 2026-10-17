@@ -16,6 +16,9 @@ estimated cashback and rewards.
 
 ### 🎁 Cashback and Rewards
 ![Cashback Calculator and Rewards Tracker](cashback-rewards.png)
+
+### 🛍️ Shopping Platforms
+![Zyvora Shopping Platforms](platform.png)
 ---
 
 ## ✨ Features
