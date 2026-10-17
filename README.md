@@ -5,8 +5,17 @@ and beauty shopping websites together in one place. It helps users
 explore platforms, organize shopping lists, plan budgets, and track
 estimated cashback and rewards.
 
-🌐 **Live Demo:** https://zyvora-kappa.vercel.app/
+🌐 **Live Website:** https://zyvora-kappa.vercel.app/
+## 📸 Screenshots
 
+### 🏠 Homepage
+![Zyvora Homepage](homepage.png)
+
+### 🛍️ Shopping List and Budget Planner
+![Shopping List and Budget Planner](shopping-budget.png)
+
+### 🎁 Cashback and Rewards
+![Cashback Calculator and Rewards Tracker](cashback-rewards.png)
 ---
 
 ## ✨ Features
