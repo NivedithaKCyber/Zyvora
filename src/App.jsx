@@ -67,6 +67,8 @@ const platforms = [
 
 function App() {
   const [search, setSearch] = useState("");
+  const [shieldUrl, setShieldUrl] = useState("");
+  const [shieldReport, setShieldReport] = useState(null);
   const [category, setCategory] = useState("All");
  const [favorites, setFavorites] = useState(() => {
   const savedFavorites = localStorage.getItem("zyvora-favorites");
@@ -282,6 +284,86 @@ useEffect(() => {
     JSON.stringify(rewards)
   );
 }, [rewards]);
+  function analyseShoppingUrl() {
+    const raw = shieldUrl.trim();
+
+    if (!raw) {
+      setShieldReport({ error: "Paste a website link to analyse it." });
+      return;
+    }
+
+    let parsed;
+    try {
+      parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    } catch {
+      setShieldReport({ error: "This does not look like a valid web address. Check the spelling and try again." });
+      return;
+    }
+
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      setShieldReport({ error: "Please enter a website address beginning with http:// or https://." });
+      return;
+    }
+
+    const host = parsed.hostname.toLowerCase();
+    const warnings = [];
+    let riskScore = 0;
+
+    if (parsed.protocol !== "https:") {
+      warnings.push({ title: "HTTPS encryption is missing", detail: "The link does not use HTTPS. Avoid entering sensitive information on an unencrypted connection.", points: 25 });
+      riskScore += 25;
+    }
+    if (parsed.username || parsed.password) {
+      warnings.push({ title: "Unusual login information in the URL", detail: "The address contains username or password syntax that may disguise the real destination.", points: 30 });
+      riskScore += 30;
+    }
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) {
+      warnings.push({ title: "IP address used instead of a domain", detail: "The website uses a numeric IP address. Verify the destination before trusting it.", points: 25 });
+      riskScore += 25;
+    }
+    if (host.split(".").some((part) => part.startsWith("xn--"))) {
+      warnings.push({ title: "Internationalised domain detected", detail: "Some internationalised domain names can imitate familiar website names. Inspect the domain carefully.", points: 30 });
+      riskScore += 30;
+    }
+    if (host.split(".").length >= 5) {
+      warnings.push({ title: "Unusually many subdomains", detail: "The address contains several subdomain levels. Check which domain actually controls the website.", points: 15 });
+      riskScore += 15;
+    }
+    if (host.includes("-") && /(nykaa|myntra|ajio|purplle|savana|hm)/i.test(host)) {
+      warnings.push({ title: "Possible retailer impersonation pattern", detail: "The hostname contains a familiar retailer name alongside extra domain text. Compare it with the retailer's official domain.", points: 25 });
+      riskScore += 25;
+    }
+    if (parsed.href.length > 180) {
+      warnings.push({ title: "Unusually long URL", detail: "Long URLs are not necessarily malicious, but inspect unexpected parameters and redirects carefully.", points: 10 });
+      riskScore += 10;
+    }
+
+    riskScore = Math.min(100, riskScore);
+    let level;
+    let recommendation;
+    if (riskScore >= 50) {
+      level = "High risk indicators";
+      recommendation = "Do not enter passwords or payment details until you independently verify the website through its official domain.";
+    } else if (riskScore >= 20) {
+      level = "Medium risk indicators";
+      recommendation = "Review the warnings carefully. Confirm the domain using the retailer's official website before shopping.";
+    } else {
+      level = "Low risk indicators";
+      recommendation = "No major warning patterns were detected by these checks. This does not prove the website is legitimate or safe.";
+    }
+
+    setShieldReport({
+      host,
+      warnings,
+      riskScore,
+      level,
+      recommendation,
+      detail: warnings.length > 0
+        ? "One or more URL patterns deserve a closer look."
+        : "No warning patterns covered by this basic check were detected.",
+    });
+  }
+
   return (
     <div className={`app ${darkMode ? "dark-mode" : ""}`}>
       <div className="announcement">
@@ -297,6 +379,7 @@ useEffect(() => {
         <nav>
           <a href="#home">Home</a>
           <a href="#platforms">Explore</a>
+          <a href="#zyvora-shield">Shield</a>
           <a href="#about">About</a>
         </nav>
 
@@ -637,6 +720,54 @@ useEffect(() => {
     )}
   </div>
 </section>
+        <section className="shield-section" id="zyvora-shield">
+          <div className="shield-intro">
+            <span className="shield-icon" aria-hidden="true">🛡️</span>
+            <p className="eyebrow">SHOPPING SAFETY TOOL</p>
+            <h2>Check a link before you shop.</h2>
+            <p>Paste a shopping URL to check for a few common warning signs. Your link is analysed in this browser; it is not sent to a security service.</p>
+          </div>
+          <form className="shield-form" onSubmit={(event) => { event.preventDefault(); analyseShoppingUrl(); }}>
+            <label htmlFor="shield-url">Shopping website URL</label>
+            <div className="shield-input-row">
+              <input id="shield-url" type="text" inputMode="url" autoComplete="url" placeholder="https://example.com" value={shieldUrl} onChange={(event) => { setShieldUrl(event.target.value); setShieldReport(null); }} />
+              <button type="submit">Analyse link ↗</button>
+            </div>
+            <p className="shield-privacy">🔒 Basic pattern checks only · No website is guaranteed safe</p>
+          </form>
+          {shieldReport && (
+            <div className={`shield-report ${shieldReport.error ? "shield-error" : ""}`} aria-live="polite">
+              {shieldReport.error ? <p>{shieldReport.error}</p> : <>
+                <div className="shield-report-heading"><span>Analysis for</span><strong>{shieldReport.host}</strong></div>
+                <div className="shield-risk-score">
+                  <div className="shield-score-number">{shieldReport.riskScore}<span>/100</span></div>
+                  <div className="shield-score-details">
+                    <h3>{shieldReport.level}</h3>
+                    <p>Heuristic URL risk score — not a confirmed security verdict.</p>
+                  </div>
+                </div>
+                <p>{shieldReport.detail}</p>
+                {shieldReport.warnings.length > 0 ? (
+                  <ul className="shield-warning-list">
+                    {shieldReport.warnings.map((warning, index) => (
+                      <li key={index}>
+                        <strong>{warning.title}</strong>
+                        <p>{warning.detail}</p>
+                        <span>Risk points: +{warning.points}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="shield-no-warning">✓ No obvious warning patterns were detected by this basic check.</p>}
+                <div className="shield-recommendation">
+                  <strong>🛡️ Safety recommendation</strong>
+                  <p>{shieldReport.recommendation}</p>
+                </div>
+                <p className="shield-disclaimer">This is not a reputation lookup or malware scan. Check the domain carefully and never enter passwords or payment details if you are unsure.</p>
+              </>}
+            </div>
+          )}
+        </section>
+
         <section className="discover-section" id="platforms">
           <div className="section-heading">
             <div>
