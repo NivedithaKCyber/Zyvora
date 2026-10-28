@@ -1,16 +1,66 @@
-# React + Vite
+# 🛍️ Zyvora — Smart Shopping Discovery Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Zyvora is a shopping discovery platform that brings popular fashion
+and beauty shopping websites together in one place. It helps users
+explore platforms, organize shopping lists, plan budgets, and track
+estimated cashback and rewards.
 
-Currently, two official plugins are available:
+🌐 **Live Website:** https://zyvora-kappa.vercel.app/
+## 📸 Screenshots
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 🏠 Homepage
+![Zyvora Homepage](homepage.png)
 
-## React Compiler
+### 🛍️ Shopping List and Budget Planner
+![Shopping List and Budget Planner](shopping-budget.png)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🎁 Cashback and Rewards
+![Cashback Calculator and Rewards Tracker](cashback-rewards.png)
 
-## Expanding the ESLint configuration
+### 🛍️ Shopping Platforms
+![Zyvora Shopping Platforms](platforms.png)
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ✨ Features
+
+- 🛒 **Shopping Discovery:** Access multiple fashion and beauty platforms.
+- ❤️ **Favorites:** Save your preferred shopping platforms.
+- 🌙 **Dark Mode:** Switch between light and dark themes.
+- 🕘 **Recently Visited:** Keep track of recently visited platforms.
+- 📝 **Shopping List:** Add, manage, and remove shopping items.
+- 💰 **Budget Planner:** Plan purchases and monitor your remaining budget.
+- 🎁 **Cashback Calculator:** Estimate cashback based on a percentage.
+- 🏆 **Rewards Tracker:** Record and manage rewards.
+
+## 🛠️ Technologies Used
+
+- React
+- JavaScript
+- Vite
+- CSS
+- HTML
+- Browser Local Storage
+- Git and GitHub
+- Vercel
+
+## 🖥️ Supported Shopping Platforms
+
+- Myntra
+- AJIO
+- H&M
+- Nykaa
+- Purplle
+- Savana
+
+## 🚀 Run Locally
+
+### Prerequisites
+
+Install Node.js and Git.
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/NivedithaKCyber/Zyvora.git

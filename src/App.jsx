@@ -70,6 +70,31 @@ function App() {
   const [shieldUrl, setShieldUrl] = useState("");
   const [shieldReport, setShieldReport] = useState(null);
   const [category, setCategory] = useState("All");
+  // 🔔 Smart Shopping Notifications
+const [notifications, setNotifications] = useState([]);
+const [showNotifications, setShowNotifications] = useState(false);
+function addNotification(message, type = "success") {
+  const notification = {
+    id: Date.now() + Math.random(),
+    message,
+    type,
+  };
+
+  setNotifications((current) =>
+    [notification, ...current].slice(0, 10)
+  );
+}
+
+function removeNotification(id) {
+  setNotifications((current) =>
+    current.filter((notification) => notification.id !== id)
+  );
+}
+  // 🤖 Smart Shopping Assistant
+const [assistantCategory, setAssistantCategory] = useState("Fashion");
+const [assistantNeed, setAssistantNeed] = useState("Everyday wear");
+const [assistantBudget, setAssistantBudget] = useState("2000");
+const [assistantResults, setAssistantResults] = useState(null);
  const [favorites, setFavorites] = useState(() => {
   const savedFavorites = localStorage.getItem("zyvora-favorites");
   return savedFavorites ? JSON.parse(savedFavorites) : [];
@@ -149,6 +174,41 @@ const totalRewards = rewards.reduce(
         : [...current, id]
     );
   }
+  // 🤖 Generate shopping recommendations
+function findShoppingRecommendations() {
+  const amount = Number(assistantBudget);
+
+  if (
+    assistantBudget.trim() === "" ||
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    alert("Please enter a valid shopping budget.");
+    return;
+  }
+
+  const results = platforms.filter((platform) => {
+    const matchesCategory =
+      platform.category === assistantCategory;
+
+    const matchesNeed =
+      assistantNeed === "Everything" ||
+      (assistantNeed === "Everyday wear" &&
+        platform.category === "Fashion") ||
+      (assistantNeed === "Makeup" &&
+        platform.name === "Nykaa") ||
+      (assistantNeed === "Skincare" &&
+        platform.category === "Beauty") ||
+      (assistantNeed === "Clothing" &&
+        platform.category === "Fashion") ||
+      (assistantNeed === "Footwear" &&
+        ["Myntra", "AJIO"].includes(platform.name));
+
+    return matchesCategory && matchesNeed;
+  });
+
+  setAssistantResults(results);
+}
   function recordVisit(platform) {
   setRecentlyVisited((current) => [
     platform.id,
@@ -170,8 +230,10 @@ function addShoppingItem() {
   ]);
 
   setNewItem("");
-}
 
+  // 🔔 Show notification
+  addNotification(`"${item}" added to your shopping list! 🛍️`);
+}
 function removeShoppingItem(id) {
   setShoppingList((current) =>
     current.filter((item) => item.id !== id)
@@ -393,8 +455,50 @@ useEffect(() => {
 >
   {darkMode ? "☀️ Light" : "🌙 Dark"}
 </button>
+<button
+  className="notification-toggle"
+  onClick={() => setShowNotifications((current) => !current)}
+>
+  🔔 Notifications ({notifications.length})
+</button>
       </header>
+{showNotifications && (
+  <section className="notification-panel" aria-live="polite">
+    <div className="notification-heading">
+      <h2>🔔 Notifications</h2>
 
+      <button
+        type="button"
+        onClick={() => setShowNotifications(false)}
+      >
+        ✕
+      </button>
+    </div>
+
+    {notifications.length === 0 ? (
+      <p>No notifications yet. Your shopping updates will appear here!</p>
+    ) : (
+      <div className="notification-list">
+        {notifications.map((notification) => (
+          <div
+            className={`notification-item ${notification.type}`}
+            key={notification.id}
+          >
+            <span>{notification.message}</span>
+
+            <button
+              type="button"
+              onClick={() => removeNotification(notification.id)}
+              aria-label="Dismiss notification"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+)}
       <main>
         <section className="hero" id="home">
           <div className="hero-content">
@@ -432,7 +536,6 @@ useEffect(() => {
             </div>
           </div>
         </section>
-
 <section className="recent-section">
   <h2>🕘 Recently Visited</h2>
 
@@ -457,6 +560,135 @@ useEffect(() => {
           </a>
         );
       })}
+    </div>
+  )}
+</section>
+{/* 🤖 SMART SHOPPING ASSISTANT */}
+<section className="shopping-assistant" id="shopping-assistant">
+  <div className="assistant-heading">
+    <p className="section-label">YOUR PERSONAL SHOPPING GUIDE</p>
+
+    <h2>Meet your Smart Shopping Assistant ✨</h2>
+
+    <p>
+      Tell us what you're looking for, choose your budget,
+      and discover shopping platforms that match your interests.
+    </p>
+  </div>
+
+  <div className="assistant-form">
+    <label htmlFor="assistant-category">
+      What would you like to explore?
+    </label>
+
+    <select
+      id="assistant-category"
+      value={assistantCategory}
+      onChange={(event) => {
+        setAssistantCategory(event.target.value);
+        setAssistantResults(null);
+      }}
+    >
+      <option value="Fashion">Fashion</option>
+      <option value="Beauty">Beauty</option>
+    </select>
+
+    <label htmlFor="assistant-need">
+      What are you looking for?
+    </label>
+
+    <select
+      id="assistant-need"
+      value={assistantNeed}
+      onChange={(event) => {
+        setAssistantNeed(event.target.value);
+        setAssistantResults(null);
+      }}
+    >
+      <option value="Everyday wear">Everyday wear</option>
+      <option value="Clothing">Clothing</option>
+      <option value="Footwear">Footwear</option>
+      <option value="Makeup">Makeup</option>
+      <option value="Skincare">Skincare</option>
+      <option value="Everything">Explore everything</option>
+    </select>
+
+    <label htmlFor="assistant-budget">
+      Your budget (₹)
+    </label>
+
+    <input
+      id="assistant-budget"
+      type="number"
+      min="1"
+      placeholder="Enter your budget"
+      value={assistantBudget}
+      onChange={(event) => {
+        setAssistantBudget(event.target.value);
+        setAssistantResults(null);
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={findShoppingRecommendations}
+    >
+      Find My Shopping Platforms ✨
+    </button>
+  </div>
+
+  {assistantResults !== null && (
+    <div className="assistant-results" aria-live="polite">
+      <h3>Your Shopping Recommendations</h3>
+
+      {assistantResults.length === 0 ? (
+        <p>
+          We couldn't find a matching platform for that combination.
+          Try another category or shopping preference.
+        </p>
+      ) : (
+        <>
+          <p>
+            We found {assistantResults.length} platform
+            {assistantResults.length === 1 ? "" : "s"}
+            {" "}to explore!
+          </p>
+
+          <div className="assistant-platforms">
+            {assistantResults.map((platform) => (
+              <article
+                className="assistant-platform-card"
+                key={platform.id}
+              >
+                <img
+                  src={platform.image}
+                  alt={`${platform.name} logo`}
+                />
+
+                <h4>{platform.name}</h4>
+
+                <p>{platform.description}</p>
+
+                <a
+                  href={platform.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => recordVisit(platform)}
+                >
+                  Explore Platform ↗
+                </a>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+
+      <p className="assistant-budget-note">
+        Your budget is ₹
+        {Number(assistantBudget).toLocaleString("en-IN")}.
+        Recommendations are based on platform categories, not live
+        product prices or availability.
+      </p>
     </div>
   )}
 </section>
@@ -599,10 +831,16 @@ useEffect(() => {
   </div>
 
   {remainingBudget < 0 && (
-    <p className="budget-warning">
-      ⚠️ You've exceeded your shopping budget!
-    </p>
-  )}
+  <p className="budget-warning">
+    ⚠️ You've exceeded your shopping budget!
+  </p>
+)}
+
+{remainingBudget >= 0 && budget > 0 && totalSpending >= budget * 0.8 && (
+  <p className="budget-warning">
+    ⚠️ You've used at least 80% of your shopping budget!
+  </p>
+)}
 </section>
 {/* 🎁 CASHBACK & REWARDS */}
 <section className="rewards-section">
@@ -891,7 +1129,62 @@ useEffect(() => {
           <a href="#platforms">Start exploring ↗</a>
         </section>
       </main>
+{/* About & Help Section */}
+<section className="about-help-section" id="about-help">
+  <div className="about-help-heading">
+    <span className="section-eyebrow">GET TO KNOW ZYVORA</span>
 
+    <h2>Fashion discovery, made simple.</h2>
+
+    <p>
+      Zyvora brings fashion and beauty platforms together in one place,
+      helping you discover styles, explore brands, and find your next
+      favorite.
+    </p>
+  </div>
+
+  <div className="about-help-grid">
+    <div className="about-help-card">
+      <span className="about-help-icon">✨</span>
+      <h3>About Zyvora</h3>
+      <p>
+        Your personal destination for discovering fashion, beauty,
+        and shopping platforms without the hassle of searching
+        multiple websites.
+      </p>
+    </div>
+
+    <div className="about-help-card">
+      <span className="about-help-icon">🛍️</span>
+      <h3>How It Works</h3>
+      <p>
+        Explore platforms, search by category, save your favorites,
+        create shopping lists, and visit the retailer's website
+        when you're ready to shop.
+      </p>
+    </div>
+
+    <div className="about-help-card">
+      <span className="about-help-icon">💡</span>
+      <h3>Helpful Features</h3>
+      <p>
+        Use the Smart Shopping Assistant, budget planner, rewards
+        tracker, and Zyvora Shield to organize your shopping
+        experience.
+      </p>
+    </div>
+
+    <div className="about-help-card">
+      <span className="about-help-icon">🔒</span>
+      <h3>Shop Mindfully</h3>
+      <p>
+        Zyvora helps you discover external shopping platforms.
+        Always verify the retailer's website, product details,
+        prices, and offers before purchasing.
+      </p>
+    </div>
+  </div>
+</section>
       <footer>
         <a className="logo footer-logo" href="#home">
           zy<span>vora</span>
